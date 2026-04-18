@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Productierapportage</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+    <link rel="stylesheet" href="/static/style.css?v=15">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Topbar ──────────────────────────────────────────────── -->
+<div class="topbar">
+    <div class="logo"><img src="/static/logo_dobber.png" alt="Dobber Healthcare" class="logo-img"><span class="logo-divider"></span><span class="logo-text">Productierapportage</span></div>
+    <div class="periode-filter">
+        <span style="font-size:13px;opacity:0.7;">Periode:</span>
+        <input type="date" id="datum-van">
+        <span style="opacity:0.5;">t/m</span>
+        <input type="date" id="datum-tot">
+        <button class="btn-refresh" id="btn-refresh">Ververs</button>
+    </div>
+    <div class="user-info">Management</div>
+</div>
+
+<!-- ── Sidebar ─────────────────────────────────────────────── -->
+<div class="sidebar">
+    <div class="nav-item active" data-page="overzicht">
+        <span class="icon">&#9632;</span> Overzicht
+    </div>
+    <div class="nav-item" data-page="productie">
+        <span class="icon">&#9776;</span> Productiedetail
+    </div>
+    <div class="nav-item" data-page="drukkerij">
+        <span class="icon">&#9113;</span> Drukkerij
+    </div>
+    <div class="nav-item" data-page="vouwerij">
+        <span class="icon">&#9830;</span> Vouwerij
+    </div>
+    <div class="nav-item" data-page="beheer">
+        <span class="icon">&#9881;</span> Beheer
+    </div>
+</div>
+
+<!-- ── Content ─────────────────────────────────────────────── -->
+<div class="content">
+
+    <!-- PAGE: Overzicht -->
+    <div class="page active" id="page-overzicht">
+        <div class="page-title">Managementoverzicht</div>
+        <div id="overzicht-content">
+            <div class="loading">Data laden...</div>
+        </div>
+    </div>
+
+    <!-- PAGE: Productiedetail -->
+    <div class="page" id="page-productie">
+        <div class="page-title">Productiedetail</div>
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>Vestiging</label>
+                <select id="filter-vestiging" onchange="loadProductie()">
+                    <option value="">Beide</option>
+                    <option value="Alkmaar">Alkmaar</option>
+                    <option value="Uitgeest">Uitgeest</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Machinegroep</label>
+                <select id="filter-machinegroep" onchange="loadProductie()">
+                    <option value="">Alle</option>
+                    <option value="Drukkerij">Drukkerij</option>
+                    <option value="Vouwerij">Vouwerij</option>
+                    <option value="Snijderij">Snijderij</option>
+                    <option value="Nabewerking">Nabewerking</option>
+                </select>
+            </div>
+        </div>
+        <div class="card">
+            <div id="productie-table">
+                <div class="loading">Selecteer een periode en klik op Ververs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE: Drukkerij -->
+    <div class="page" id="page-drukkerij">
+        <div class="page-title">Drukkerij</div>
+        <div id="drukkerij-content">
+            <div class="loading">Data laden...</div>
+        </div>
+    </div>
+
+    <!-- PAGE: Vouwerij -->
+    <div class="page" id="page-vouwerij">
+        <div class="page-title">Vouwerij</div>
+        <div id="vouwerij-content">
+            <div class="loading">Data laden...</div>
+        </div>
+    </div>
+
+    <!-- PAGE: Machine Detail -->
+    <div class="page" id="page-machine">
+        <div id="machine-back" class="machine-back" onclick="navigateBack()">&larr; Terug</div>
+        <div class="page-title" id="machine-page-title">Machine</div>
+        <div id="machine-detail-content">
+            <div class="empty-state">Selecteer een machine vanuit Drukkerij of Vouwerij.</div>
+        </div>
+    </div>
+
+    <!-- PAGE: Beheer -->
+    <div class="page" id="page-beheer">
+        <div class="page-title">Beheer</div>
+
+        <div class="subtabs">
+            <div class="subtab active" data-tab="tab-normen">Normen</div>
+            <div class="subtab" data-tab="tab-instellingen">Instellingen</div>
+            <div class="subtab" data-tab="tab-grafieken">Grafiekconfiguratie</div>
+        </div>
+
+        <!-- Tab: Normen -->
+        <div class="subtab-content active" id="tab-normen">
+            <div class="card">
+                <div class="card-title">Nieuwe norm toevoegen</div>
+                <div id="norm-form">
+                    <div class="form-row">
+                        <select id="norm-code" style="min-width:200px;">
+                            <option value="">Selecteer machine...</option>
+                        </select>
+                        <input type="number" id="norm-omzet" placeholder="Omzet/dienst" step="0.01">
+                        <input type="number" id="norm-snelheid" placeholder="Snelheid" step="1">
+                        <input type="number" id="norm-stel" placeholder="Stel % (0-100)" step="0.1" min="0" max="100">
+                        <input type="number" id="norm-bezetting" placeholder="Bezetting % (0-100)" step="0.1" min="0" max="100">
+                        <input type="date" id="norm-geldig" placeholder="Geldig vanaf">
+                        <button class="btn-primary" onclick="addNorm()">Toevoegen</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">Huidige normen</div>
+                <div id="normen-table">
+                    <div class="loading">Laden...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Instellingen -->
+        <div class="subtab-content" id="tab-instellingen">
+            <div class="card">
+                <div class="card-title">Applicatie-instellingen</div>
+                <div id="instellingen-content">
+                    <div class="loading">Laden...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Grafiekconfiguratie -->
+        <div class="subtab-content" id="tab-grafieken">
+            <div class="card">
+                <div class="card-title">Grafiekconfiguratie</div>
+                <div class="chart-placeholder">
+                    Grafiekconfiguratie wordt uitgewerkt in een volgende iteratie.<br>
+                    Hier kunt u straks per sectie (drukkerij/vouwerij) instellen welke grafieken standaard getoond worden.
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/static/app.js?v=15"></script>
+</body>
+</html>

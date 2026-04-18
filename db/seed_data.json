@@ -1,0 +1,444 @@
+{
+  "normen_vouwmachines": [
+    {
+      "code": "82",
+      "naam": "vijuk 16",
+      "snelheid_incl": 5300,
+      "snelheid_excl": 5500
+    },
+    {
+      "code": "54",
+      "naam": "vijuk 2",
+      "snelheid_incl": 0,
+      "snelheid_excl": 0
+    },
+    {
+      "code": "55",
+      "naam": "vijuk 3",
+      "snelheid_incl": 2100,
+      "snelheid_excl": 2300
+    },
+    {
+      "code": "58",
+      "naam": "vijuk 4",
+      "snelheid_incl": 2500,
+      "snelheid_excl": 2500
+    },
+    {
+      "code": "59",
+      "naam": "vijuk 5",
+      "snelheid_incl": 2000,
+      "snelheid_excl": 2500
+    },
+    {
+      "code": "60",
+      "naam": "vijuk 6",
+      "snelheid_incl": 3500,
+      "snelheid_excl": 3800
+    },
+    {
+      "code": "61",
+      "naam": "vijuk 7",
+      "snelheid_incl": 3600,
+      "snelheid_excl": 3600
+    },
+    {
+      "code": "72",
+      "naam": "vijuk 8",
+      "snelheid_incl": 5300,
+      "snelheid_excl": 5830.000000000001
+    },
+    {
+      "code": "73",
+      "naam": "vijuk 9",
+      "snelheid_incl": 5900,
+      "snelheid_excl": 6490.000000000001
+    },
+    {
+      "code": "74",
+      "naam": "vijuk 10",
+      "snelheid_incl": 5900,
+      "snelheid_excl": 6490.000000000001
+    },
+    {
+      "code": "75",
+      "naam": "vijuk 11",
+      "snelheid_incl": 2250,
+      "snelheid_excl": 3000
+    },
+    {
+      "code": "76",
+      "naam": "vijuk 12",
+      "snelheid_incl": 2300,
+      "snelheid_excl": 2800
+    },
+    {
+      "code": "79",
+      "naam": "vijuk 13",
+      "snelheid_incl": 2600,
+      "snelheid_excl": 3500
+    },
+    {
+      "code": "80",
+      "naam": "vijuk 14",
+      "snelheid_incl": 2800,
+      "snelheid_excl": 3500
+    },
+    {
+      "code": "81",
+      "naam": "vijuk 15",
+      "snelheid_incl": 2300,
+      "snelheid_excl": 3400
+    },
+    {
+      "code": "44",
+      "naam": "MBO",
+      "snelheid_incl": 0,
+      "snelheid_excl": 0
+    },
+    {
+      "code": "56",
+      "naam": "HH7",
+      "snelheid_incl": 0,
+      "snelheid_excl": 0
+    },
+    {
+      "code": "57",
+      "naam": "HH8",
+      "snelheid_incl": 2100,
+      "snelheid_excl": 2500
+    },
+    {
+      "code": "70",
+      "naam": "GUK 7",
+      "snelheid_incl": 5900,
+      "snelheid_excl": 6800
+    },
+    {
+      "code": "71",
+      "naam": "GUK 8",
+      "snelheid_incl": 7400,
+      "snelheid_excl": 8140.000000000001
+    },
+    {
+      "code": "49",
+      "naam": "guk 1",
+      "snelheid_incl": 4500,
+      "snelheid_excl": 4800
+    },
+    {
+      "code": "65",
+      "naam": "guk 2",
+      "snelheid_incl": 5300,
+      "snelheid_excl": 6400
+    },
+    {
+      "code": "66",
+      "naam": "guk 3",
+      "snelheid_incl": 7100,
+      "snelheid_excl": 7800
+    },
+    {
+      "code": "67",
+      "naam": "guk 4",
+      "snelheid_incl": 8700,
+      "snelheid_excl": 9000
+    },
+    {
+      "code": "50",
+      "naam": "guk 5",
+      "snelheid_incl": 4600,
+      "snelheid_excl": 5000
+    },
+    {
+      "code": "69",
+      "naam": "guk 6",
+      "snelheid_incl": 5000,
+      "snelheid_excl": 5200
+    },
+    {
+      "code": "46",
+      "naam": "H&H 1",
+      "snelheid_incl": 2800,
+      "snelheid_excl": 3500
+    },
+    {
+      "code": "52",
+      "naam": "H&H 3",
+      "snelheid_incl": 2800,
+      "snelheid_excl": 3100
+    },
+    {
+      "code": "48",
+      "naam": "H&H 4",
+      "snelheid_incl": 3400,
+      "snelheid_excl": 4000
+    },
+    {
+      "code": "77",
+      "naam": "Grafotronic",
+      "snelheid_incl": 43000,
+      "snelheid_excl": 43000
+    },
+    {
+      "code": "78",
+      "naam": "Prati",
+      "snelheid_incl": 43000,
+      "snelheid_excl": 43000
+    },
+    {
+      "code": "83",
+      "naam": "Prati 2",
+      "snelheid_incl": 43000,
+      "snelheid_excl": 43000
+    }
+  ],
+  "weekly_overview": [
+    {
+      "week": "week 1",
+      "alk_verwacht": 309752.94,
+      "alk_werkelijk": 287287.32,
+      "alk_diensten_verwacht": 119.6,
+      "alk_diensten_werkelijk": 111.15857142857142,
+      "alk_per_dienst_verwacht": 2589.907525083612,
+      "alk_per_dienst_werkelijk": 2584.4819370011955,
+      "uit_verwacht": 15032.36,
+      "uit_werkelijk": 14747.850000000002
+    },
+    {
+      "week": "week 2",
+      "alk_verwacht": 470925.69999999995,
+      "alk_werkelijk": 467869.12399999995,
+      "alk_diensten_verwacht": 197,
+      "alk_diensten_werkelijk": 179.09285714285716,
+      "alk_per_dienst_verwacht": 2390.4857868020304,
+      "alk_per_dienst_werkelijk": 2612.438773182307,
+      "uit_verwacht": 51364.600000000006,
+      "uit_werkelijk": 39241.56999999999
+    },
+    {
+      "week": "week 3",
+      "alk_verwacht": 475817.1599999999,
+      "alk_werkelijk": 480866.60000000003,
+      "alk_diensten_verwacht": 193.4,
+      "alk_diensten_werkelijk": 172.08714285714285,
+      "alk_per_dienst_verwacht": 2460.274870734229,
+      "alk_per_dienst_werkelijk": 2794.320319439487,
+      "uit_verwacht": 57607.20000000001,
+      "uit_werkelijk": 49835.240000000005
+    },
+    {
+      "week": "week 4",
+      "alk_verwacht": 495028.1000000001,
+      "alk_werkelijk": 498071.97,
+      "alk_diensten_verwacht": 185,
+      "alk_diensten_werkelijk": 176.84142857142857,
+      "alk_per_dienst_verwacht": 2675.827567567568,
+      "alk_per_dienst_werkelijk": 2816.4891791677774,
+      "uit_verwacht": 54268.48,
+      "uit_werkelijk": 51689.64000000001
+    },
+    {
+      "week": "week 5",
+      "alk_verwacht": 479118.5,
+      "alk_werkelijk": 461868.43,
+      "alk_diensten_verwacht": 180,
+      "alk_diensten_werkelijk": 166.93285714285713,
+      "alk_per_dienst_verwacht": 2661.7694444444446,
+      "alk_per_dienst_werkelijk": 2766.7916185292634,
+      "uit_verwacht": 52648.12,
+      "uit_werkelijk": 53956.26
+    },
+    {
+      "week": "week 6",
+      "alk_verwacht": 494981.20000000007,
+      "alk_werkelijk": 495056.04000000004,
+      "alk_diensten_verwacht": 187,
+      "alk_diensten_werkelijk": 176.97714285714287,
+      "alk_per_dienst_verwacht": 2646.958288770054,
+      "alk_per_dienst_werkelijk": 2797.288011365471,
+      "uit_verwacht": 51397.08000000001,
+      "uit_werkelijk": 55444.090000000004
+    },
+    {
+      "week": "week 7",
+      "alk_verwacht": 438963,
+      "alk_werkelijk": 502376.5400000001,
+      "alk_diensten_verwacht": 173.6,
+      "alk_diensten_werkelijk": 169.95142857142855,
+      "alk_per_dienst_verwacht": 2528.5887096774195,
+      "alk_per_dienst_werkelijk": 2956.000689272566,
+      "uit_verwacht": 56213.08,
+      "uit_werkelijk": 47173.91
+    },
+    {
+      "week": "week 8",
+      "alk_verwacht": 495585.30000000005,
+      "alk_werkelijk": 477289.80000000005,
+      "alk_diensten_verwacht": 189,
+      "alk_diensten_werkelijk": 173.81428571428572,
+      "alk_per_dienst_verwacht": 2622.1444444444446,
+      "alk_per_dienst_werkelijk": 2745.9756718994004,
+      "uit_verwacht": 61997.32,
+      "uit_werkelijk": 56701.94
+    },
+    {
+      "week": "week 9",
+      "alk_verwacht": 506812.6,
+      "alk_werkelijk": 466895.8599999999,
+      "alk_diensten_verwacht": 199,
+      "alk_diensten_werkelijk": 173.70857142857145,
+      "alk_per_dienst_verwacht": 2546.796984924623,
+      "alk_per_dienst_werkelijk": 2687.811293134642,
+      "uit_verwacht": 50163.82,
+      "uit_werkelijk": 74017.82999999999
+    },
+    {
+      "week": "week 10",
+      "alk_verwacht": 495975.9,
+      "alk_werkelijk": 494515.98,
+      "alk_diensten_verwacht": 184,
+      "alk_diensten_werkelijk": 177.64285714285717,
+      "alk_per_dienst_verwacht": 2695.521195652174,
+      "alk_per_dienst_werkelijk": 2783.7650663449936,
+      "uit_verwacht": 54714.8,
+      "uit_werkelijk": 57985.03699999999
+    },
+    {
+      "week": "week 11",
+      "alk_verwacht": 498752.8000000001,
+      "alk_werkelijk": 510136.7299999999,
+      "alk_diensten_verwacht": 194,
+      "alk_diensten_werkelijk": 177.75285714285715,
+      "alk_per_dienst_verwacht": 2570.890721649485,
+      "alk_per_dienst_werkelijk": 2869.9214077330475,
+      "uit_verwacht": 63832.02000000001,
+      "uit_werkelijk": 67285.91
+    },
+    {
+      "week": "week 12",
+      "alk_verwacht": 504592.8999999999,
+      "alk_werkelijk": 520566.47,
+      "alk_diensten_verwacht": 187,
+      "alk_diensten_werkelijk": 179.23857142857145,
+      "alk_per_dienst_verwacht": 2698.357754010695,
+      "alk_per_dienst_werkelijk": 2904.3216861804294,
+      "uit_verwacht": 51296.14,
+      "uit_werkelijk": 57878.51999999999
+    },
+    {
+      "week": "week 13",
+      "alk_verwacht": 523658.10000000003,
+      "alk_werkelijk": 498701.684,
+      "alk_diensten_verwacht": 204,
+      "alk_diensten_werkelijk": 187.8085714285714,
+      "alk_per_dienst_verwacht": 2566.9514705882357,
+      "alk_per_dienst_werkelijk": 2655.3723304884916,
+      "uit_verwacht": 64577.52,
+      "uit_werkelijk": 63778.509999999995
+    },
+    {
+      "week": "week 14",
+      "alk_verwacht": 420548.45,
+      "alk_werkelijk": 413031.80600000004,
+      "alk_diensten_verwacht": 163.25,
+      "alk_diensten_werkelijk": 144.97,
+      "alk_per_dienst_verwacht": 2576.100765696784,
+      "alk_per_dienst_werkelijk": 2849.0846795888806,
+      "uit_verwacht": 57512,
+      "uit_werkelijk": 62333.11
+    },
+    {
+      "week": "week 15",
+      "alk_verwacht": 0,
+      "alk_werkelijk": 0,
+      "alk_diensten_verwacht": 0,
+      "alk_diensten_werkelijk": 0,
+      "alk_per_dienst_verwacht": 0,
+      "alk_per_dienst_werkelijk": 0,
+      "uit_verwacht": 0,
+      "uit_werkelijk": 0
+    },
+    {
+      "week": "week 16",
+      "alk_verwacht": 0,
+      "alk_werkelijk": 0,
+      "alk_diensten_verwacht": 0,
+      "alk_diensten_werkelijk": 0,
+      "alk_per_dienst_verwacht": 0,
+      "alk_per_dienst_werkelijk": 0,
+      "uit_verwacht": 0,
+      "uit_werkelijk": 0
+    }
+  ],
+  "omzet_weken": [
+    {
+      "week": "week 1",
+      "totaal": 378908
+    },
+    {
+      "week": "week 2",
+      "totaal": 583927
+    },
+    {
+      "week": "week 3",
+      "totaal": 546320
+    },
+    {
+      "week": "week 4",
+      "totaal": 485641
+    },
+    {
+      "week": "week 5",
+      "totaal": 487255
+    },
+    {
+      "week": "week 6",
+      "totaal": 445460
+    },
+    {
+      "week": "week 7",
+      "totaal": 512858
+    },
+    {
+      "week": "week 8",
+      "totaal": 488695
+    },
+    {
+      "week": "week 9",
+      "totaal": 485722
+    },
+    {
+      "week": "week 10",
+      "totaal": 529490
+    },
+    {
+      "week": "week 11",
+      "totaal": 537787
+    },
+    {
+      "week": "week 12",
+      "totaal": 546888
+    },
+    {
+      "week": "week 13",
+      "totaal": 406346
+    },
+    {
+      "week": "week 14",
+      "totaal": 359341
+    },
+    {
+      "week": "week 15",
+      "totaal": 467171
+    },
+    {
+      "week": "week 16",
+      "totaal": 501448
+    },
+    {
+      "week": "week 17",
+      "totaal": 475930
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build: .
+    container_name: productie-dashboard
+    ports:
+      - "8093:8093"
+    volumes:
+      - ./db:/app/db
+      - ./frontend:/app/frontend
+      - ./backend:/app/backend
+    env_file:
+      - .env
+    environment:
+      - APP_PORT=8093
+      - DATABASE_URL=sqlite:////app/db/dashboard.db
+      - IXGRAM_API_URL=https://app.ixgram.com/dashboards/ajax/getWidgetSettingData/5257/6d95d03bc427960b68e32394b22f8b26244
+    restart: unless-stopped
