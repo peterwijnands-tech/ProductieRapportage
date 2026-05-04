@@ -33,19 +33,27 @@ def init_db():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
-    # Seed default settings if empty
-    if db.query(Setting).count() == 0:
-        defaults = [
-            Setting(key="standaard_periode_dagen", value="7", label="Standaardperiode (dagen)"),
-            Setting(key="drempel_norm_rood", value="20", label="Drempelwaarde normafwijking rood (%)"),
-            Setting(key="drempel_norm_oranje", value="10", label="Drempelwaarde normafwijking oranje (%)"),
-            Setting(key="drempel_stelpercentage", value="30", label="Drempelwaarde stelpercentage (%)"),
-            Setting(key="kpi_papiervoorraad", value="600000", label="KPI papiervoorraad"),
-            Setting(key="drempel_ziekteverzuim", value="10", label="Drempelwaarde ziekteverzuim"),
-            Setting(key="standaard_vestiging", value="beide", label="Standaard vestiging"),
-        ]
-        db.add_all(defaults)
+    # Seed default settings – insert missing ones
+    all_defaults = [
+        ("standaard_periode_dagen", "7", "Standaardperiode (dagen)"),
+        ("drempel_norm_rood", "20", "Drempelwaarde normafwijking rood (%)"),
+        ("drempel_norm_oranje", "10", "Drempelwaarde normafwijking oranje (%)"),
+        ("drempel_norm_max_boven", "100", "Max afwijking boven norm signaal (%)"),
+        ("drempel_stelpercentage", "30", "Drempelwaarde stelpercentage (%)"),
+        ("drempel_max_uren_ploeg", "9", "Max uren per ploeg signaal"),
+        ("kpi_papiervoorraad", "600000", "KPI papiervoorraad"),
+        ("drempel_ziekteverzuim", "10", "Drempelwaarde ziekteverzuim"),
+        ("standaard_vestiging", "beide", "Standaard vestiging"),
+    ]
+    existing_keys = {s.key for s in db.query(Setting).all()}
+    added = 0
+    for key, value, label in all_defaults:
+        if key not in existing_keys:
+            db.add(Setting(key=key, value=value, label=label))
+            added += 1
+    if added:
         db.commit()
+        print(f"Added {added} new settings")
 
     # Seed norms from Excel data – insert missing ones
     seed_path = os.path.join(os.path.dirname(__file__), "..", "..", "db", "seed_data.json")

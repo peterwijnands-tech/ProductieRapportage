@@ -127,7 +127,7 @@ async function loadOverzicht() {
     }
 }
 
-function renderOverzicht(data) {
+async function renderOverzicht(data) {
     const kpi = data.kpi;
     const container = document.getElementById('overzicht-content');
     const signalHtml = data.signalen.length > 0
@@ -138,38 +138,89 @@ function renderOverzicht(data) {
             </li>`).join('')
         : '<li class="empty-state">Geen signalen - alle machines presteren binnen norm</li>';
 
+    // Bereken historische gemiddelden per vestiging
+    const dagen = Object.keys(data.omzet_per_dag).sort();
+    const wdKort = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+    const chartLabels = dagen.map(d => {
+        const dt = new Date(d + 'T00:00:00');
+        return wdKort[dt.getDay()] + ' ' + parseInt(d.slice(8)) + '/' + parseInt(d.slice(5,7));
+    });
+    const alkData = dagen.map(d => data.omzet_per_dag[d].alkmaar);
+    const uitData = dagen.map(d => data.omzet_per_dag[d].uitgeest);
+
+    let gemData = new Array(dagen.length).fill(0);
+    let afwData = new Array(dagen.length).fill(0);
+    let wdGemTotaal = {}, wdGemAlk = {}, wdGemUit = {};
+
+    try {
+        const hist = await api('/api/productie?van=2026-01-01&tot=2026-12-31');
+        const dagTotaal = {}, dagAlk = {}, dagUit = {};
+        hist.data.forEach(r => {
+            dagTotaal[r.datum] = (dagTotaal[r.datum] || 0) + (r.omzet || 0);
+            if (r.vestiging === 'Alkmaar') dagAlk[r.datum] = (dagAlk[r.datum] || 0) + (r.omzet || 0);
+            if (r.vestiging === 'Uitgeest') dagUit[r.datum] = (dagUit[r.datum] || 0) + (r.omzet || 0);
+        });
+        // Per weekdag gemiddelden berekenen (alleen dagen met omzet > 0)
+        const wdBuckets = { totaal: {}, alk: {}, uit: {} };
+        for (const [d, omzet] of Object.entries(dagTotaal)) {
+            if (omzet <= 0) continue;
+            const wd = new Date(d + 'T00:00:00').getDay();
+            if (!wdBuckets.totaal[wd]) { wdBuckets.totaal[wd] = []; wdBuckets.alk[wd] = []; wdBuckets.uit[wd] = []; }
+            wdBuckets.totaal[wd].push(omzet);
+            wdBuckets.alk[wd].push(dagAlk[d] || 0);
+            wdBuckets.uit[wd].push(dagUit[d] || 0);
+        }
+        const avg = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
+        for (const wd of Object.keys(wdBuckets.totaal)) {
+            wdGemTotaal[wd] = avg(wdBuckets.totaal[wd]);
+            wdGemAlk[wd] = avg(wdBuckets.alk[wd]);
+            wdGemUit[wd] = avg(wdBuckets.uit[wd]);
+        }
+        dagen.forEach((d, i) => {
+            const wd = new Date(d + 'T00:00:00').getDay();
+            const gem = wdGemTotaal[wd] || 0;
+            const totaal = alkData[i] + uitData[i];
+            gemData[i] = Math.round(gem);
+            afwData[i] = gem > 0 ? Math.round(((totaal - gem) / gem) * 1000) / 10 : 0;
+        });
+    } catch(e) { /* ignore */ }
+
+    // Bereken periode-gemiddelde per vestiging (gewogen naar weekdagen in selectie)
+    let gemTotaalPeriode = 0, gemAlkPeriode = 0, gemUitPeriode = 0;
+    let aantalDagen = 0;
+    dagen.forEach(d => {
+        const wd = new Date(d + 'T00:00:00').getDay();
+        const gt = wdGemTotaal[wd] || 0;
+        if (gt > 0) { gemTotaalPeriode += gt; gemAlkPeriode += (wdGemAlk[wd] || 0); gemUitPeriode += (wdGemUit[wd] || 0); aantalDagen++; }
+    });
+    const afwTotaal = gemTotaalPeriode > 0 ? ((kpi.totaal_omzet - gemTotaalPeriode) / gemTotaalPeriode) * 100 : 0;
+    const afwAlk = gemAlkPeriode > 0 ? ((kpi.omzet_alkmaar - gemAlkPeriode) / gemAlkPeriode) * 100 : 0;
+    const afwUit = gemUitPeriode > 0 ? ((kpi.omzet_uitgeest - gemUitPeriode) / gemUitPeriode) * 100 : 0;
+
+    const afwLabel = (v) => { const s = v >= 0 ? `+${v.toFixed(1)}%` : `${v.toFixed(1)}%`; return `<span class="${v >= 0 ? 'kpi-pct-groen' : 'kpi-pct-rood'}">${s}</span>`; };
+    const pctAlk = kpi.totaal_omzet > 0 ? (kpi.omzet_alkmaar/kpi.totaal_omzet)*100 : 0;
+    const pctUit = kpi.totaal_omzet > 0 ? (kpi.omzet_uitgeest/kpi.totaal_omzet)*100 : 0;
+
     container.innerHTML = `
-        <div class="kpi-grid">
-            <div class="kpi-tile" onclick="navigateTo('productie')">
-                <div class="kpi-label">Totaal omzet</div>
-                <div class="kpi-value">${formatCurrency(kpi.totaal_omzet)}</div>
-                <div class="kpi-sub">${state.periode.van} t/m ${state.periode.tot}</div>
+        <div class="card-grid-2">
+            <div class="overzicht-kpi-row">
+                <div class="kpi-tile" onclick="navigateTo('productie')">
+                    <div class="kpi-label">Totaal omzet</div>
+                    <div class="kpi-value">${formatCurrency(kpi.totaal_omzet)}</div>
+                    <div class="kpi-sub">${afwLabel(afwTotaal)} t.o.v. gemiddelde</div>
+                </div>
+                <div class="kpi-tile" onclick="navigateTo('productie')">
+                    <div class="kpi-label">Omzet Alkmaar (${formatPercent(pctAlk)})</div>
+                    <div class="kpi-value">${formatCurrency(kpi.omzet_alkmaar)}</div>
+                    <div class="kpi-sub">${afwLabel(afwAlk)} t.o.v. gemiddelde</div>
+                </div>
+                <div class="kpi-tile" onclick="navigateTo('productie')">
+                    <div class="kpi-label">Omzet Uitgeest (${formatPercent(pctUit)})</div>
+                    <div class="kpi-value">${formatCurrency(kpi.omzet_uitgeest)}</div>
+                    <div class="kpi-sub">${afwLabel(afwUit)} t.o.v. gemiddelde</div>
+                </div>
             </div>
-            <div class="kpi-tile" onclick="navigateTo('productie')">
-                <div class="kpi-label">Omzet Alkmaar</div>
-                <div class="kpi-value">${formatCurrency(kpi.omzet_alkmaar)}</div>
-                <div class="kpi-sub">${formatPercent(kpi.totaal_omzet > 0 ? (kpi.omzet_alkmaar/kpi.totaal_omzet)*100 : 0)} van totaal</div>
-            </div>
-            <div class="kpi-tile" onclick="navigateTo('productie')">
-                <div class="kpi-label">Omzet Uitgeest</div>
-                <div class="kpi-value">${formatCurrency(kpi.omzet_uitgeest)}</div>
-                <div class="kpi-sub">${formatPercent(kpi.totaal_omzet > 0 ? (kpi.omzet_uitgeest/kpi.totaal_omzet)*100 : 0)} van totaal</div>
-            </div>
-            <div class="kpi-tile">
-                <div class="kpi-label">Orderportefeuille</div>
-                <div class="kpi-value">-</div>
-                <div class="kpi-sub">Wordt geladen uit bron</div>
-            </div>
-            <div class="kpi-tile">
-                <div class="kpi-label">Papiervoorraad</div>
-                <div class="kpi-value">-</div>
-                <div class="kpi-sub">vs. KPI 600.000</div>
-            </div>
-            <div class="kpi-tile">
-                <div class="kpi-label">Ziekteverzuim</div>
-                <div class="kpi-value">-</div>
-                <div class="kpi-sub">Lang + kort verzuim</div>
-            </div>
+            <div></div>
         </div>
 
         <div class="card-grid-2">
@@ -183,86 +234,74 @@ function renderOverzicht(data) {
             </div>
         </div>
 
-        <div class="card-grid-2">
-            <div class="card">
-                <div class="card-title">Verdeling omzet per vestiging</div>
-                <div class="chart-container"><canvas id="chart-vestiging-pie"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="card-title">Productie-uren verdeling</div>
-                <div class="chart-container"><canvas id="chart-uren-verdeling"></canvas></div>
-            </div>
-        </div>
     `;
 
-    if (typeof Chart === 'undefined') return;
-
-    const dagen = Object.keys(data.omzet_per_dag).sort();
-    const wdKort = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
-    const chartLabels = dagen.map(d => {
-        const dt = new Date(d + 'T00:00:00');
-        return wdKort[dt.getDay()] + ' ' + parseInt(d.slice(8)) + '/' + parseInt(d.slice(5,7));
-    });
-    const alkData = dagen.map(d => data.omzet_per_dag[d].alkmaar);
-    const uitData = dagen.map(d => data.omzet_per_dag[d].uitgeest);
-
-    // Chart 1: Omzet per dag gestapeld (zoals dashboards omzet tab)
+    // Chart 1: Omzet per dag gestapeld + gemiddelde lijn
     createChart('chart-omzet-dag', {
         type: 'bar',
         data: {
             labels: chartLabels,
             datasets: [
-                { label: 'Alkmaar', data: alkData, backgroundColor: '#1B3A5C', stack: 'omzet' },
-                { label: 'Uitgeest', data: uitData, backgroundColor: '#6BAED6', stack: 'omzet' },
+                { label: 'Alkmaar', data: alkData, backgroundColor: '#1B3A5C', stack: 'omzet', order: 2 },
+                { label: 'Uitgeest', data: uitData, backgroundColor: '#6BAED6', stack: 'omzet', order: 2 },
+                { label: 'Gem. weekdag', data: gemData, type: 'line',
+                  borderColor: 'transparent', backgroundColor: 'transparent',
+                  borderWidth: 0, pointRadius: 0, fill: false, order: 1, yAxisID: 'y',
+                  tension: 0, hidden: false },
             ]
         },
+        plugins: [{
+            id: 'afwijkingLabels',
+            afterDatasetsDraw(chart) {
+                const ctx = chart.ctx;
+                const meta = chart.getDatasetMeta(2); // gemiddelde lijn dataset
+                if (!meta || !meta.data) return;
+                ctx.save();
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                dagen.forEach((d, i) => {
+                    const afw = afwData[i];
+                    if (afw === 0 && gemData[i] === 0) return;
+                    const totaal = alkData[i] + uitData[i];
+                    if (totaal === 0) return;
+                    // Position above the stacked bar
+                    const barMeta0 = chart.getDatasetMeta(0);
+                    const barMeta1 = chart.getDatasetMeta(1);
+                    const topY = Math.min(
+                        barMeta0.data[i] ? barMeta0.data[i].y : 999,
+                        barMeta1.data[i] ? barMeta1.data[i].y : 999
+                    );
+                    const x = barMeta0.data[i] ? barMeta0.data[i].x : 0;
+                    ctx.fillStyle = afw >= 0 ? '#28A745' : '#DC3545';
+                    const label = (afw >= 0 ? '+' : '') + afw.toFixed(1) + '%';
+                    ctx.fillText(label, x, topY - 6);
+                });
+                ctx.restore();
+            }
+        }],
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } },
+            plugins: {
+                legend: { position: 'top', labels: { filter: (item) => item.datasetIndex !== 2 } },  // hide gem. weekdag, show vorig jaar
+                tooltip: { callbacks: {
+                    label: (ctx) => {
+                        if (ctx.datasetIndex === 2) return null;
+                        return ctx.dataset.label + ': €' + formatNumber(ctx.parsed.y);
+                    },
+                    afterBody: (items) => {
+                        const i = items[0].dataIndex;
+                        const totaal = alkData[i] + uitData[i];
+                        const gem = gemData[i];
+                        const afw = afwData[i];
+                        const afwLabel = afw >= 0 ? `+${afw.toFixed(1)}%` : `${afw.toFixed(1)}%`;
+                        return [`─────────────`, `Totaal: €${formatNumber(totaal)}`, `Gem. ${chartLabels[i].substring(0,2)}: €${formatNumber(gem)}`, `Afwijking: ${afwLabel}`];
+                    }
+                }}
+            },
             scales: { x: { stacked: true }, y: { stacked: true, ticks: { callback: v => '\u20AC' + formatNumber(v) } } }
         }
     });
 
-    // Chart 2: Taart verdeling per vestiging
-    createChart('chart-vestiging-pie', {
-        type: 'doughnut',
-        data: {
-            labels: ['Alkmaar', 'Uitgeest'],
-            datasets: [{ data: [kpi.omzet_alkmaar, kpi.omzet_uitgeest], backgroundColor: ['#1B3A5C', '#6BAED6'] }]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-
-    // Chart 4: Uren verdeling placeholder (needs productie data)
-    loadUrenVerdeling();
-}
-
-async function loadUrenVerdeling() {
-    try {
-        const result = await api(`/api/productie?van=${state.periode.van}&tot=${state.periode.tot}`);
-        const data = result.data.filter(r => r.machinegroep !== 'Overig' && r.centiuren_totaal > 0);
-        let totaalDraaien = 0, totaalStellen = 0, totaalFout = 0;
-        data.forEach(r => {
-            totaalDraaien += r.centiuren_draaien || 0;
-            totaalStellen += r.centiuren_stellen || 0;
-            totaalFout += r.centiuren_foute_bewerking || 0;
-        });
-
-        createChart('chart-uren-verdeling', {
-            type: 'doughnut',
-            data: {
-                labels: ['Draaien (productief)', 'Stellen (instellen)', 'Stilstand / fout'],
-                datasets: [{ data: [totaalDraaien, totaalStellen, totaalFout], backgroundColor: ['#28A745', '#FFC107', '#DC3545'] }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
-    } catch(e) { /* ignore */ }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -715,6 +754,19 @@ async function renderMachineDetail() {
                         tekst: `${dagLabel}: stelpercentage ${dagStelPct.toFixed(1)}% (hoog)` });
                 }
             }
+
+            // Meer dan 9 uur per ploeg
+            const ploegUren = [
+                { naam: 'ochtend', uren: d.cnt_ochtend },
+                { naam: 'middag', uren: d.cnt_middag },
+                { naam: 'nacht', uren: d.cnt_nacht },
+            ];
+            ploegUren.forEach(p => {
+                if (p.uren > 9) {
+                    signalen.push({ type: 'waarschuwing', prio: -p.uren, dagIdx: di, ploeg: p.naam,
+                        tekst: `${dagLabel} ${p.naam}: ${p.uren.toFixed(2)} uur (meer dan 9 uur)` });
+                }
+            });
         });
 
         signalen.sort((a, b) => a.prio - b.prio);
@@ -1427,20 +1479,58 @@ async function loadNormen() {
 
 function renderNormen() {
     const container = document.getElementById('normen-table');
+    const editCell = (id, field, val, type='number', step='1') => {
+        const display = val != null ? (type === 'date' ? val : formatNumber(val, type === 'pct' ? 1 : (step === '0.01' ? 2 : 0))) : '-';
+        const inputType = type === 'date' ? 'date' : 'number';
+        const inputVal = val != null ? val : '';
+        return `<td class="num editable" onclick="editNormCell(this, ${id}, '${field}', '${inputType}', '${step}')" title="Klik om te bewerken">${display}</td>`;
+    };
     const rows = state.normen.map(n => `
         <tr>
             <td>${n.planplaats_code}</td><td>${n.planplaats_naam || '-'}</td><td>${n.vestiging || '-'}</td>
-            <td class="num">${n.norm_omzet_per_dienst != null ? formatCurrency(n.norm_omzet_per_dienst) : '-'}</td>
-            <td class="num">${n.norm_snelheid != null ? formatNumber(n.norm_snelheid, 0) : '-'}</td>
-            <td class="num">${n.norm_stelpercentage != null ? formatPercent(n.norm_stelpercentage) : '-'}</td>
-            <td class="num">${n.norm_bezetting != null ? formatPercent(n.norm_bezetting) : '-'}</td>
-            <td>${n.geldig_vanaf}</td>
+            ${editCell(n.id, 'norm_omzet_per_dienst', n.norm_omzet_per_dienst, 'number', '0.01')}
+            ${editCell(n.id, 'norm_snelheid', n.norm_snelheid, 'number', '1')}
+            ${editCell(n.id, 'norm_stelpercentage', n.norm_stelpercentage, 'pct', '0.1')}
+            ${editCell(n.id, 'norm_bezetting', n.norm_bezetting, 'pct', '0.1')}
+            ${editCell(n.id, 'geldig_vanaf', n.geldig_vanaf, 'date', '')}
             <td><button class="btn-danger" onclick="deleteNorm(${n.id})">Verwijder</button></td>
         </tr>`).join('');
     container.innerHTML = `<div class="data-table-wrapper"><table class="data-table"><thead><tr>
         <th>Code</th><th>Machine</th><th>Vestiging</th><th>Norm omzet/dienst</th><th>Norm snelheid</th>
         <th>Norm stel%</th><th>Norm bezetting</th><th>Geldig vanaf</th><th></th>
     </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function editNormCell(td, normId, field, inputType, step) {
+    if (td.querySelector('input')) return; // al in edit mode
+    const norm = state.normen.find(n => n.id === normId);
+    if (!norm) return;
+    const oldVal = norm[field];
+    const input = document.createElement('input');
+    input.type = inputType;
+    if (step) input.step = step;
+    input.value = oldVal != null ? oldVal : '';
+    input.className = 'norm-edit-input';
+    td.textContent = '';
+    td.appendChild(input);
+    input.focus();
+    input.select();
+
+    const save = async () => {
+        const newVal = input.value;
+        const parsedVal = inputType === 'date' ? newVal : (newVal ? parseFloat(newVal) : null);
+        if (parsedVal === oldVal || (parsedVal === null && oldVal === null)) { loadNormen(); return; }
+        const update = { ...norm };
+        delete update.id;
+        update[field] = parsedVal;
+        await apiPut(`/api/normen/${normId}`, update);
+        loadNormen();
+    };
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') { loadNormen(); }
+    });
 }
 
 async function addNorm() {

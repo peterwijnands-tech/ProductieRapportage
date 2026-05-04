@@ -239,9 +239,51 @@ async def get_overzicht(
         elif r["vestiging"] == "Uitgeest":
             omzet_per_dag[dag]["uitgeest"] += r.get("omzet", 0)
 
-    # Signals: machines significantly below norm
+    # Historisch gemiddelde per weekdag: haal ALLE data op (brede datumrange)
+    # en bereken gemiddelde omzet per weekdag (0=ma..6=zo) over alle weken met waarde > 0
+    all_data = await fetch_productie_data(date(2026, 1, 1), date(2027, 1, 1))
+    weekdag_totalen: dict[int, list[float]] = {}
+    dag_omzet_all: dict[str, float] = {}
+    for r in all_data:
+        dag = r["datum"] if isinstance(r["datum"], str) else r["datum"].isoformat()
+        dag_omzet_all[dag] = dag_omzet_all.get(dag, 0) + r.get("omzet", 0)
+
+    for dag_str, omzet_totaal in dag_omzet_all.items():
+        if omzet_totaal <= 0:
+            continue  # skip feestdagen/lege dagen
+        try:
+            dt = date.fromisoformat(dag_str)
+        except ValueError:
+            continue
+        wd = dt.weekday()  # 0=maandag
+        if wd not in weekdag_totalen:
+            weekdag_totalen[wd] = []
+        weekdag_totalen[wd].append(omzet_totaal)
+
+    weekdag_gemiddelde: dict[int, float] = {}
+    for wd, waarden in weekdag_totalen.items():
+        weekdag_gemiddelde[wd] = round(sum(waarden) / len(waarden), 2) if waarden else 0
+
+    import logging
+    logging.info(f"Weekdag gemiddelden berekend: {weekdag_gemiddelde} (op basis van {len(dag_omzet_all)} dagen)")
+
+    # Per dag in de geselecteerde periode: gemiddelde en afwijking toevoegen
+    for dag_str, dag_data in omzet_per_dag.items():
+        try:
+            dt = date.fromisoformat(dag_str)
+        except ValueError:
+            continue
+        wd = dt.weekday()
+        gem = weekdag_gemiddelde.get(wd, 0)
+        dag_totaal = dag_data["alkmaar"] + dag_data["uitgeest"]
+        afwijking = round(((dag_totaal - gem) / gem) * 100, 1) if gem > 0 else 0
+        dag_data["gemiddelde"] = gem
+        dag_data["afwijking_pct"] = afwijking
+
+    # Signals: machines significantly below or above norm
     drempel_rood = float(settings.get("drempel_norm_rood", "20"))
     drempel_oranje = float(settings.get("drempel_norm_oranje", "10"))
+    drempel_max_boven = float(settings.get("drempel_norm_max_boven", "100"))
     normen = {n.planplaats_code: n for n in db.query(Norm).all()}
 
     signalen = []
@@ -285,6 +327,15 @@ async def get_overzicht(
                         "vestiging": mt["vestiging"],
                         "afwijking": round(afwijking, 1),
                         "tekst": f"{mt['planplaats_naam']} presteert {abs(round(afwijking, 1))}% onder norm"
+                    })
+                if afwijking > drempel_max_boven:
+                    signalen.append({
+                        "type": "kritiek",
+                        "machine": mt["planplaats_naam"],
+                        "code": code,
+                        "vestiging": mt["vestiging"],
+                        "afwijking": round(afwijking, 1),
+                        "tekst": f"{mt['planplaats_naam']} +{round(afwijking, 1)}% boven norm (mogelijk foutieve data)"
                     })
 
     signalen.sort(key=lambda s: s["afwijking"])
