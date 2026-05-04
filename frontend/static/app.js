@@ -105,6 +105,16 @@ async function apiPut(url, data) { return (await fetch(url, { method: 'PUT', hea
 async function apiDelete(url) { return (await fetch(url, { method: 'DELETE' })).json(); }
 
 function formatDate(d) { return d.toISOString().split('T')[0]; }
+function getAllDaysInPeriod(van, tot) {
+    const days = [];
+    const d = new Date(van + 'T00:00:00');
+    const end = new Date(tot + 'T00:00:00');
+    while (d <= end) {
+        days.push(d.toISOString().split('T')[0]);
+        d.setDate(d.getDate() + 1);
+    }
+    return days;
+}
 function formatNumber(n, decimals = 0) {
     if (n === null || n === undefined) return '-';
     return new Intl.NumberFormat('nl-NL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(n);
@@ -138,15 +148,15 @@ async function renderOverzicht(data) {
             </li>`).join('')
         : '<li class="empty-state">Geen signalen - alle machines presteren binnen norm</li>';
 
-    // Bereken historische gemiddelden per vestiging
-    const dagen = Object.keys(data.omzet_per_dag).sort();
+    // Bereken historische gemiddelden per vestiging — alle dagen in periode tonen
+    const dagen = getAllDaysInPeriod(state.periode.van, state.periode.tot);
     const wdKort = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
     const chartLabels = dagen.map(d => {
         const dt = new Date(d + 'T00:00:00');
         return wdKort[dt.getDay()] + ' ' + parseInt(d.slice(8)) + '/' + parseInt(d.slice(5,7));
     });
-    const alkData = dagen.map(d => data.omzet_per_dag[d].alkmaar);
-    const uitData = dagen.map(d => data.omzet_per_dag[d].uitgeest);
+    const alkData = dagen.map(d => (data.omzet_per_dag[d] || {}).alkmaar || 0);
+    const uitData = dagen.map(d => (data.omzet_per_dag[d] || {}).uitgeest || 0);
 
     let gemData = new Array(dagen.length).fill(0);
     let afwData = new Array(dagen.length).fill(0);
@@ -464,11 +474,12 @@ function showSignalPopup(dagIdx, ploeg) {
     const dt = new Date(d.datum + 'T00:00:00');
     const dagLabel = weekdagenFull[dt.getDay()] + ' ' + parseInt(d.datum.slice(8)) + '/' + parseInt(d.datum.slice(5,7));
 
-    const ploegen = [
+    const allePloegen = [
         { naam: 'Ochtend', prod: d.prod_ochtend, draai: d.draai_ochtend, stel: d.stel_ochtend, cnt: d.cnt_ochtend },
         { naam: 'Middag', prod: d.prod_middag, draai: d.draai_middag, stel: d.stel_middag, cnt: d.cnt_middag },
         { naam: 'Nacht', prod: d.prod_nacht, draai: d.draai_nacht, stel: d.stel_nacht, cnt: d.cnt_nacht },
     ];
+    const ploegen = allePloegen.filter(p => p.prod > 0 || p.draai > 0 || p.cnt > 0);
 
     const ploegRows = ploegen.map(p => {
         const snelheid = p.draai > 0 ? p.prod / p.draai : 0;
@@ -654,7 +665,13 @@ async function renderMachineDetail() {
     });
 
     const weekdagen = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
-    const dagen = Object.values(dagMap).sort((a, b) => a.datum.localeCompare(b.datum));
+    const emptyDag = { datum: '', prod_ochtend: 0, prod_middag: 0, prod_nacht: 0,
+        stel_ochtend: 0, stel_middag: 0, stel_nacht: 0,
+        draai_ochtend: 0, draai_middag: 0, draai_nacht: 0,
+        cnt_ochtend: 0, cnt_middag: 0, cnt_nacht: 0,
+        prod_totaal: 0, cnt_totaal: 0, cnt_stellen: 0, cnt_draaien: 0, omzet: 0 };
+    const allDays = getAllDaysInPeriod(state.periode.van, state.periode.tot);
+    const dagen = allDays.map(d => dagMap[d] || { ...emptyDag, datum: d });
     const labels = dagen.map(d => {
         const dt = new Date(d.datum + 'T00:00:00');
         return weekdagen[dt.getDay()] + ' ' + parseInt(d.datum.slice(8)) + '/' + parseInt(d.datum.slice(5,7));
