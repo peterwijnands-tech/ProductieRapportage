@@ -107,10 +107,13 @@ async function apiDelete(url) { return (await fetch(url, { method: 'DELETE' })).
 function formatDate(d) { return d.toISOString().split('T')[0]; }
 function getAllDaysInPeriod(van, tot) {
     const days = [];
-    const d = new Date(van + 'T00:00:00');
-    const end = new Date(tot + 'T00:00:00');
+    const d = new Date(van + 'T12:00:00');
+    const end = new Date(tot + 'T12:00:00');
     while (d <= end) {
-        days.push(d.toISOString().split('T')[0]);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        days.push(`${y}-${m}-${day}`);
         d.setDate(d.getDate() + 1);
     }
     return days;
