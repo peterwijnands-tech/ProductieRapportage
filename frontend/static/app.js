@@ -19,6 +19,7 @@ const state = {
 /* ── Init ─────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
     const tot = new Date();
+    tot.setDate(tot.getDate() - 1);
     const van = new Date();
     van.setDate(van.getDate() - 7);
     document.getElementById('datum-van').value = formatDate(van);
